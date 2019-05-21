@@ -1,12 +1,13 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.6 Standard
-This software is covered by GPL license. You also can obtain Commercial or Enterprise license to use it in non-GPL project - please contact sales@dhtmlx.com. Usage without proper license is prohibited.
+dhtmlxGantt v.6.1.2 Professional
+This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
 
 */
+Gantt.plugin(function(gantt){
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -173,9 +174,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					e.preventDefault();
 					gantt.$container.blur();
 					return false;
-				// do nothing if key-nav focus is already planned
-				} else if (!dispatcher.awaitsFocus()) {
-					// otherwise - re-focus key-nav element on gantt focus
+				}else{
 					dispatcher.focusGlobalNode();
 				}
 
@@ -248,15 +247,17 @@ return /******/ (function(modules) { // webpackBootstrap
 					}
 					focusNode = locateTask;
 				}
-				if (focusNode) {
+
+				if(focusNode) {
 					if (!dispatcher.isEnabled()) {
 						dispatcher.activeNode = focusNode;
+
 					} else {
 						dispatcher.delay(function () {
 							dispatcher.setActiveNode(focusNode);
 						});
 					}
-				} else {
+				}else{
 					// empty click should drop focus from gantt, insert of reselecting default node
 					dispatcher.$preventDefault = true;
 					setTimeout(function(){
@@ -270,7 +271,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				gantt.detachEvent(onReady);
 
 				gantt.$data.tasksStore.attachEvent("onStoreUpdated", function(id){
-					if (gantt.config.keyboard_navigation && dispatcher.isEnabled()) {
+					if(gantt.config.keyboard_navigation && dispatcher.isEnabled()){
 						var currentNode = dispatcher.getActiveNode();
 						if(currentNode && currentNode.taskId == id){
 							reFocusActiveNode();
@@ -415,6 +416,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					if(commands.length){
 						return this.getCommandHandler(commands[0], scope);
 					}
+					
 				},
 				getCommandHandler: function(command, scope){
 					var scopeObject = getScope(scope);
@@ -1248,10 +1250,7 @@ module.exports = function(gantt) {
 		}
 		this.taskId = taskId;
 		this.columnIndex = index || 0;
-		// provided task may not exist, in this case node will be detectes as invalid
-		if (gantt.isTaskExists(this.taskId)) {
-			this.index = gantt.getTaskIndex(this.taskId);
-		}
+		this.index = gantt.getTaskIndex(this.taskId);
 	};
 
 	gantt.$keyboardNavigation.TaskCell.prototype = gantt._compose(
@@ -1263,9 +1262,7 @@ module.exports = function(gantt) {
 				return gantt.$keyboardNavigation.TaskRow.prototype.isValid.call(this) && !!gantt.getGridColumns()[this.columnIndex];
 			},
 			fallback: function () {
-
 				var node = gantt.$keyboardNavigation.TaskRow.prototype.fallback.call(this);
-				var result = node;
 				if (node instanceof gantt.$keyboardNavigation.TaskRow) {
 					var visibleColumns = gantt.getGridColumns();
 					var index = this.columnIndex;
@@ -1275,11 +1272,12 @@ module.exports = function(gantt) {
 						index--;
 					}
 					if (visibleColumns[index]) {
-						result = new gantt.$keyboardNavigation.TaskCell(node.taskId, index);
+						return new gantt.$keyboardNavigation.TaskCell(node.taskId, index);
+					} else {
+						return node;
 					}
 				}
 
-				return result;
 			},
 
 			fromDomElement: function(el){
@@ -1308,7 +1306,7 @@ module.exports = function(gantt) {
 						var row = gantt.$grid.querySelector(".gantt_row[" + gantt.config.task_attribute + "='" + this.taskId + "']");
 						if(!row)
 							return null;
-						return row.querySelector("[data-column-index='"+this.columnIndex+"']");
+						return row.childNodes[this.columnIndex];
 					} else {
 						return gantt.getTaskNode(this.taskId);
 					}
@@ -2086,4 +2084,5 @@ module.exports = makeEventable;
 /***/ })
 
 /******/ });
+});
 });

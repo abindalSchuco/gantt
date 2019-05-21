@@ -1,12 +1,13 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.6 Standard
-This software is covered by GPL license. You also can obtain Commercial or Enterprise license to use it in non-GPL project - please contact sales@dhtmlx.com. Usage without proper license is prohibited.
+dhtmlxGantt v.6.1.2 Professional
+This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
 
 */
+Gantt.plugin(function(gantt){
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -506,8 +507,8 @@ gantt._undo = {
 			this._nestedTasks[id] = tasks;
 			this._nestedLinks[id] = links;
 		},
-		setInitialTask: function(id, overwrite){
-			if (overwrite || (!this._initialTasks[id] || !this._batchMode)) {
+		setInitialTask: function(id){
+			if (!this._initialTasks[id] || !this._batchMode) {
 				var task = gantt.copy(gantt.getTask(id));
 				task.$index = gantt.getTaskIndex(id);
 				this.setInitialTaskObject(id, task);
@@ -625,8 +626,7 @@ gantt._undo.updateConfigs = function(){
 		});
 	}
 
-	gantt.attachEvent("onAfterTaskAdd", function (id, task) {
-		monitor.setInitialTask(id, true);
+	gantt.attachEvent("onAfterTaskAdd", function(id, task){
 		monitor.onTaskAdded(task);
 	});
 	gantt.attachEvent("onAfterTaskUpdate", function(id, task){
@@ -669,7 +669,7 @@ gantt._undo.updateConfigs = function(){
 		saveInitialAll();
 		return true;
 	});
-
+	
 	gantt.attachEvent("onRowDragEnd", function(id, target) {
 		monitor.onTaskMoved(getMoveObjectByTaskId(id));
 		monitor.toggleIgnoreMoveEvents();
@@ -765,4 +765,5 @@ gantt._undo.updateConfigs = function(){
 /***/ })
 
 /******/ });
+});
 });

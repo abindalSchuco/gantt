@@ -1,12 +1,13 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.6 Standard
-This software is covered by GPL license. You also can obtain Commercial or Enterprise license to use it in non-GPL project - please contact sales@dhtmlx.com. Usage without proper license is prohibited.
+dhtmlxGantt v.6.1.2 Professional
+This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
 
 */
+Gantt.plugin(function(gantt){
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -117,14 +118,7 @@ gantt.config.smart_rendering = true;
 gantt._smart_render = {
 	getViewPort: function(){
 
-		var timeline = gantt.$ui.getView("timeline");
-		var grid = gantt.$ui.getView("grid");
-		var view = gantt.$layout;
-		if (timeline && timeline.isVisible()) {
-			view = timeline;
-		} else if (grid && grid.isVisible()) {
-			view = grid;
-		}
+		var view = gantt.$ui.getView("timeline") || gantt.$ui.getView("grid") || gantt.$layout;
 
 		var viewSize = view.getSize();
 		var scrollPos = gantt.getScrollState();
@@ -425,4 +419,5 @@ gantt.attachEvent("onDataRender", function() {
 /***/ })
 
 /******/ });
+});
 });

@@ -1,12 +1,13 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.6 Standard
-This software is covered by GPL license. You also can obtain Commercial or Enterprise license to use it in non-GPL project - please contact sales@dhtmlx.com. Usage without proper license is prohibited.
+dhtmlxGantt v.6.1.2 Professional
+This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
 
 */
+Gantt.plugin(function(gantt){
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -138,9 +139,6 @@ gantt.attachEvent("onGanttReady", function () {
         },
         global: false
     });
-});
-gantt.attachEvent("onDestroy", function () {
-    tooltipManager.destructor();
 });
 
 
@@ -296,20 +294,15 @@ exports.Tooltip = Tooltip;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var domEventsScope = __webpack_require__(/*! ../../utils/dom_event_scope */ "./sources/utils/dom_event_scope.js");
 var domHelpers = __webpack_require__(/*! ../../utils/dom_helpers */ "./sources/utils/dom_helpers.js");
 var helpers = __webpack_require__(/*! ../../utils/helpers */ "./sources/utils/helpers.js");
+var utils = __webpack_require__(/*! ../../utils/utils */ "./sources/utils/utils.js");
 var tooltip_1 = __webpack_require__(/*! ./tooltip */ "./sources/ext/tooltip/tooltip.ts");
 var TooltipManager = /** @class */ (function () {
     function TooltipManager() {
         this.tooltip = new tooltip_1.Tooltip();
         this._listeners = {};
-        this._domEvents = domEventsScope();
     }
-    TooltipManager.prototype.destructor = function () {
-        this.tooltip.hide();
-        this._domEvents.detachAll();
-    };
     TooltipManager.prototype.attach = function (config) {
         var _this = this;
         var root = document.body;
@@ -340,7 +333,7 @@ var TooltipManager = /** @class */ (function () {
             }
         };
         this.detach(config.selector);
-        this._domEvents.attach(root, "mousemove", handler);
+        utils.event(root, "mousemove", handler);
         this._listeners[config.selector] = {
             node: root,
             handler: handler
@@ -349,7 +342,7 @@ var TooltipManager = /** @class */ (function () {
     TooltipManager.prototype.detach = function (selector) {
         var listener = this._listeners[selector];
         if (listener) {
-            this._domEvents.detach(listener.node, "mousemove", listener.handler);
+            utils.eventRemove(listener.node, "mousemove", listener.handler);
         }
     };
     TooltipManager.prototype.tooltipFor = function (config) {
@@ -401,64 +394,6 @@ var TooltipManager = /** @class */ (function () {
 }());
 exports.TooltipManager = TooltipManager;
 
-
-/***/ }),
-
-/***/ "./sources/utils/dom_event_scope.js":
-/*!******************************************!*\
-  !*** ./sources/utils/dom_event_scope.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var utils = __webpack_require__(/*! ./utils */ "./sources/utils/utils.js");
-
-function createScope(addEvent, removeEvent) {
-	addEvent = addEvent || utils.event;
-	removeEvent = removeEvent || utils.eventRemove;
-
-	var handlers = [];
-
-	var eventScope = {
-		attach: function(el, event, callback, capture){
-			handlers.push({element: el, event:event, callback: callback, capture: capture});
-			addEvent(el, event, callback, capture);
-		},
-		detach: function(el, event, callback, capture){
-			removeEvent(el, event, callback, capture);
-			for(var i = 0; i < handlers.length; i++){
-				var handler = handlers[i];
-				if (handler.element === el && handler.event === event && handler.callback === callback && handler.capture === capture) {
-					handlers.splice(i, 1);
-					i--;
-				}
-			}
-		},
-		detachAll: function () {
-			var staticArray = handlers.slice();
-			// original handlers array can be spliced on every iteration
-			for (var i = 0; i < staticArray.length; i++){
-				var handler = staticArray[i];
-				eventScope.detach(handler.element, handler.event, handler.callback, handler.capture);
-				eventScope.detach(handler.element, handler.event, handler.callback, undefined);
-				eventScope.detach(handler.element, handler.event, handler.callback, false);
-				eventScope.detach(handler.element, handler.event, handler.callback, true);
-			}
-			handlers.splice(0, handlers.length);
-		},
-		extend: function(){
-			return createScope(this.event, this.eventRemove);
-		}
-	};
-
-	if (!window.scopes) {
-		window.scopes = [];
-	}
-	window.scopes.push(handlers);
-	return eventScope;
-}
-
-module.exports = createScope;
 
 /***/ }),
 
@@ -1097,4 +1032,5 @@ module.exports = {
 /***/ })
 
 /******/ });
+});
 });
