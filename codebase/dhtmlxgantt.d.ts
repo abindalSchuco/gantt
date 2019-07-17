@@ -215,7 +215,7 @@ interface GanttTemplates {
 	 * @param item the task object assigned to the row
 	 * @param date the date of a cell
 	*/
-	timeline_cell_class(item: any, date: Date): string;
+	task_cell_class(item: any, date: Date): string;
 
 	/**
 	 * specifies the CSS class that will be applied to task bars
@@ -2042,7 +2042,7 @@ interface GanttStatic {
 	 * gets the relative horizontal position of the specified date in the chart area
 	 * @param date a date you want to know the position of
 	*/
-	posFromDate(date: Date): number;
+	posFromDate(date: Date): void;
 
 	/**
 	 * applies the reverted changes to the gantt once again

@@ -1,7 +1,7 @@
 /*
 @license
 
-dhtmlxGantt v.6.2.0 Professional
+dhtmlxGantt v.6.1.2 Professional
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
@@ -911,7 +911,7 @@ gantt.autoSchedule = function (id, inclusive) {
 
 gantt.attachEvent("onTaskLoading", function (task) {
 	if (task.constraint_date && typeof task.constraint_date === "string") {
-		task.constraint_date = gantt.date.parseDate(task.constraint_date, "parse_date");
+		task.constraint_date = gantt.date.parseDate(task.constraint_date);
 	}
 	task.constraint_type = gantt.getConstraintType(task);
 	return true;
@@ -2007,31 +2007,18 @@ function attachUIHandlers(gantt, linksBuilder, loopsFinder, connectedGroupsHelpe
                 }
             }
         }
-        function updateTaskConstraints(task) {
-            if (gantt.config.schedule_from_end) {
-                task.constraint_type = gantt.config.constraint_types.FNLT;
-                task.constraint_date = new Date(task.end_date);
-            }
-            else {
-                task.constraint_type = gantt.config.constraint_types.SNET;
-                task.constraint_date = new Date(task.start_date);
-            }
-        }
-        function finalizeTaskConstraints(task) {
-            // TODO: remove in 7.0
-            if (gantt.config.auto_scheduling_compatibility && gantt.config.auto_scheduling_strict) {
-                if (task.constraint_type === gantt.config.constraint_types.SNET ||
-                    task.constraint_type === gantt.config.constraint_types.FNLT) {
-                    task.constraint_type = null;
-                    task.constraint_date = null;
-                }
-            }
-        }
         var _autoScheduleAfterDND = function (taskId, task) {
             if (gantt.config.auto_scheduling && !gantt._autoscheduling_in_progress) {
                 var newTask = gantt.getTask(taskId);
                 if (_notEqualTaskDates(task, newTask)) {
-                    updateTaskConstraints(newTask);
+                    if (gantt.config.schedule_from_end) {
+                        newTask.constraint_type = gantt.config.constraint_types.FNLT;
+                        newTask.constraint_date = new Date(newTask.end_date);
+                    }
+                    else {
+                        newTask.constraint_type = gantt.config.constraint_types.SNET;
+                        newTask.constraint_date = new Date(newTask.start_date);
+                    }
                     if (gantt.config.auto_scheduling_move_projects &&
                         // tslint:disable-next-line triple-equals
                         movedTask == taskId) {
@@ -2045,7 +2032,14 @@ function attachUIHandlers(gantt, linksBuilder, loopsFinder, connectedGroupsHelpe
                     else {
                         gantt.autoSchedule(newTask.id);
                     }
-                    finalizeTaskConstraints(newTask);
+                    // TODO: remove in 7.0
+                    if (gantt.config.auto_scheduling_compatibility && gantt.config.auto_scheduling_strict) {
+                        if (newTask.constraint_type === gantt.config.constraint_types.SNET ||
+                            newTask.constraint_type === gantt.config.constraint_types.FNLT) {
+                            newTask.constraint_type = null;
+                            newTask.constraint_date = null;
+                        }
+                    }
                 }
             }
             relations = null;
@@ -2069,17 +2063,11 @@ function attachUIHandlers(gantt, linksBuilder, loopsFinder, connectedGroupsHelpe
                 return true;
             });
         }
-        var changedConstraint;
         function onBeforeLigthboxSaveHandler(taskId, task) {
             if (gantt.config.auto_scheduling && !gantt._autoscheduling_in_progress) {
-                changedConstraint = false;
                 var oldTask = gantt.getTask(taskId);
                 if (_notEqualTaskDates(task, oldTask)) {
                     modifiedTaskId = taskId;
-                    if (gantt.getConstraintType(task) !== gantt.getConstraintType(oldTask) ||
-                        +task.constraint_date !== +oldTask.constraint_date) {
-                        changedConstraint = true;
-                    }
                 }
             }
             return true;
@@ -2090,13 +2078,7 @@ function attachUIHandlers(gantt, linksBuilder, loopsFinder, connectedGroupsHelpe
                     // tslint:disable-next-line triple-equals
                     modifiedTaskId == taskId) {
                     modifiedTaskId = null;
-                    if (!changedConstraint) {
-                        updateTaskConstraints(task);
-                    }
                     gantt.autoSchedule(task.id);
-                    if (!changedConstraint) {
-                        finalizeTaskConstraints(task);
-                    }
                 }
             }
             return true;
@@ -2104,18 +2086,6 @@ function attachUIHandlers(gantt, linksBuilder, loopsFinder, connectedGroupsHelpe
         gantt.attachEvent("onBeforeTaskChanged", function (id, mode, task) {
             return _autoScheduleAfterDND(id, task);
         });
-        if (gantt.ext.inlineEditors) {
-            gantt.ext.inlineEditors.attachEvent("onBeforeSave", function (state) {
-                if (gantt.config.auto_scheduling && !gantt._autoscheduling_in_progress) {
-                    var api = gantt.ext.inlineEditors;
-                    var editorConfig = api.getEditorConfig(state.columnName);
-                    if (editorConfig.map_to === "start_date" || editorConfig.map_to === "end_date" || editorConfig.map_to === "duration") {
-                        modifiedTaskId = state.id;
-                    }
-                }
-                return true;
-            });
-        }
         gantt.attachEvent("onLightboxSave", onBeforeLigthboxSaveHandler);
         gantt.attachEvent("onAfterTaskUpdate", onAfterTaskUpdateHandler);
     };
@@ -2335,21 +2305,6 @@ function objectKeys(obj) {
 	return result;
 }
 
-function requestAnimationFrame(callback) {
-	var w = window;
-	var foundRequestAnimationFrame = w.requestAnimationFrame
-		|| w.webkitRequestAnimationFrame
-		|| w.msRequestAnimationFrame
-		|| w.mozRequestAnimationFrame
-		|| w.oRequestAnimationFrame
-		|| function(cb) { setTimeout(cb, 1000/60); };
-	return foundRequestAnimationFrame(callback);
-}
-
-function isEventable(obj) {
-	return obj.attachEvent && obj.detachEvent;
-}
-
 module.exports = {
 	getSecondsInUnit: getSecondsInUnit,
 	forEach: forEach,
@@ -2367,9 +2322,7 @@ module.exports = {
 	isNumberObject: isNumberObject,
 	isBooleanObject: isBooleanObject,
 	delay: delay,
-	objectKeys: objectKeys,
-	requestAnimationFrame: requestAnimationFrame,
-	isEventable: isEventable
+	objectKeys: objectKeys
 };
 
 /***/ })

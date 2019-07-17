@@ -1,7 +1,7 @@
 /*
 @license
 
-dhtmlxGantt v.6.2.0 Professional
+dhtmlxGantt v.6.1.2 Professional
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
@@ -965,20 +965,11 @@ module.exports = function(gantt){
 				this.reset();
 				return true;
 			}, this);
-
-			var handleTaskIdChange = gantt.bind(function (oldId, newId) {
-				if (this._cache) {
-					this._cache[newId] = this._cache[oldId];
-					delete this._cache[oldId];
-				}
-				return true;
-			}, this);
-
+			
 			gantt.attachEvent("onAfterLinkAdd", resetCache);
 			gantt.attachEvent("onAfterLinkUpdate", resetCache);
 			gantt.attachEvent("onAfterLinkDelete", resetCache);
 			gantt.attachEvent("onAfterTaskAdd", resetCache);
-			gantt.attachEvent("onTaskIdChange", handleTaskIdChange);
 			gantt.attachEvent("onAfterTaskUpdate", resetCache);
 			gantt.attachEvent("onAfterTaskDelete", resetCache);
 			gantt.attachEvent("onParse", resetCache);
@@ -993,12 +984,6 @@ module.exports = function(gantt){
 			gantt.attachEvent("onAfterLinkUpdate", criticalPathHandler);
 			gantt.attachEvent("onAfterLinkDelete", criticalPathHandler);
 			gantt.attachEvent("onAfterTaskAdd", criticalPathHandler);
-			gantt.attachEvent("onTaskIdChange", function (oldId, newId) {
-				if (gantt.config.highlight_critical_path && gantt.isTaskExists(newId)) {
-					gantt.refreshTask(newId);
-				}
-				return true;
-			});
 			gantt.attachEvent("onAfterTaskUpdate", criticalPathHandler);
 			gantt.attachEvent("onAfterTaskDelete", criticalPathHandler);
 		}
@@ -1188,9 +1173,7 @@ module.exports = function(gantt) {
 			function slackHandler(){
 				_private.dropCachedFreeSlack();
 			}
-
 			gantt.attachEvent("onAfterLinkAdd", slackHandler);
-			gantt.attachEvent("onTaskIdChange", slackHandler);
 			gantt.attachEvent("onAfterLinkUpdate", slackHandler);
 			gantt.attachEvent("onAfterLinkDelete", slackHandler);
 			gantt.attachEvent("onAfterTaskAdd", slackHandler);
@@ -1411,21 +1394,6 @@ function objectKeys(obj) {
 	return result;
 }
 
-function requestAnimationFrame(callback) {
-	var w = window;
-	var foundRequestAnimationFrame = w.requestAnimationFrame
-		|| w.webkitRequestAnimationFrame
-		|| w.msRequestAnimationFrame
-		|| w.mozRequestAnimationFrame
-		|| w.oRequestAnimationFrame
-		|| function(cb) { setTimeout(cb, 1000/60); };
-	return foundRequestAnimationFrame(callback);
-}
-
-function isEventable(obj) {
-	return obj.attachEvent && obj.detachEvent;
-}
-
 module.exports = {
 	getSecondsInUnit: getSecondsInUnit,
 	forEach: forEach,
@@ -1443,9 +1411,7 @@ module.exports = {
 	isNumberObject: isNumberObject,
 	isBooleanObject: isBooleanObject,
 	delay: delay,
-	objectKeys: objectKeys,
-	requestAnimationFrame: requestAnimationFrame,
-	isEventable: isEventable
+	objectKeys: objectKeys
 };
 
 /***/ })

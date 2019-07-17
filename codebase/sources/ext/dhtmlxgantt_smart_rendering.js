@@ -1,7 +1,7 @@
 /*
 @license
 
-dhtmlxGantt v.6.2.0 Professional
+dhtmlxGantt v.6.1.2 Professional
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
@@ -118,23 +118,14 @@ gantt.config.smart_rendering = true;
 gantt._smart_render = {
 	getViewPort: function(){
 
-		var timeline = gantt.$ui.getView("timeline");
-		var grid = gantt.$ui.getView("grid");
-		var view = gantt.$layout;
-		if (timeline && timeline.isVisible()) {
-			view = timeline;
-		} else if (grid && grid.isVisible()) {
-			view = grid;
-		}
+		var view = gantt.$ui.getView("timeline") || gantt.$ui.getView("grid") || gantt.$layout;
 
 		var viewSize = view.getSize();
 		var scrollPos = gantt.getScrollState();
 
 		return {
 			y: scrollPos.y,
-			y_end: scrollPos.y + viewSize.y,
-			x: scrollPos.x,
-			x_end: scrollPos.x + viewSize.x
+			y_end: scrollPos.y + viewSize.y
 		};
 	},
 	getScrollSizes: function(){
@@ -268,14 +259,9 @@ gantt._smart_render = {
 		var taskRenderer = layers.getDataRender("task");
 		var linkRenderer = layers.getDataRender("link");
 
-		this._redrawTasks(taskRenderer.getLayers(), visibleTasks);
+		this._redrawItems(taskRenderer.getLayers(), visibleTasks);
 		this._redrawItems(linkRenderer.getLayers(), visibleLinks);
 		gantt.callEvent("onSmartRender", []);
-	},
-
-	// hook to override from key nav
-	_redrawTasks: function(layers, visibleTasks){
-		this._redrawItems(layers, visibleTasks);
 	},
 
 	cached:{},
