@@ -1,7 +1,7 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.2 Professional
+dhtmlxGantt v.6.2.0 Professional
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
@@ -174,7 +174,9 @@ return /******/ (function(modules) { // webpackBootstrap
 					e.preventDefault();
 					gantt.$container.blur();
 					return false;
-				}else{
+				// do nothing if key-nav focus is already planned
+				} else if (!dispatcher.awaitsFocus()) {
+					// otherwise - re-focus key-nav element on gantt focus
 					dispatcher.focusGlobalNode();
 				}
 
@@ -247,17 +249,15 @@ return /******/ (function(modules) { // webpackBootstrap
 					}
 					focusNode = locateTask;
 				}
-
-				if(focusNode) {
+				if (focusNode) {
 					if (!dispatcher.isEnabled()) {
 						dispatcher.activeNode = focusNode;
-
 					} else {
 						dispatcher.delay(function () {
 							dispatcher.setActiveNode(focusNode);
 						});
 					}
-				}else{
+				} else {
 					// empty click should drop focus from gantt, insert of reselecting default node
 					dispatcher.$preventDefault = true;
 					setTimeout(function(){
@@ -271,7 +271,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				gantt.detachEvent(onReady);
 
 				gantt.$data.tasksStore.attachEvent("onStoreUpdated", function(id){
-					if(gantt.config.keyboard_navigation && dispatcher.isEnabled()){
+					if (gantt.config.keyboard_navigation && dispatcher.isEnabled()) {
 						var currentNode = dispatcher.getActiveNode();
 						if(currentNode && currentNode.taskId == id){
 							reFocusActiveNode();
@@ -280,8 +280,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				});
 
 				if(gantt._smart_render){
-					var updateRender = gantt._smart_render._redrawItems;
-					gantt._smart_render._redrawItems = function(renderers, items){
+					var updateRender = gantt._smart_render._redrawTasks;
+					gantt._smart_render._redrawTasks = function(renderers, items){
 						if(gantt.config.keyboard_navigation && dispatcher.isEnabled()){
 							var currentNode = dispatcher.getActiveNode();
 							if(currentNode && currentNode.taskId !== undefined){
@@ -402,6 +402,16 @@ return /******/ (function(modules) { // webpackBootstrap
 				return scopes[mode] || scopes.gantt;
 			}
 
+			function findVisibleColumnIndex(columnName) {
+				var columns = gantt.getGridColumns();
+				for (var i = 0; i < columns.length; i++){
+					if(columns[i].name == columnName){
+						return i;
+					}
+				}
+				return 0;
+			}
+
 			var keyNavFacade = {};
 			eventable(keyNavFacade);
 			gantt.mixin(keyNavFacade, {
@@ -416,7 +426,6 @@ return /******/ (function(modules) { // webpackBootstrap
 					if(commands.length){
 						return this.getCommandHandler(commands[0], scope);
 					}
-					
 				},
 				getCommandHandler: function(command, scope){
 					var scopeObject = getScope(scope);
@@ -438,13 +447,13 @@ return /******/ (function(modules) { // webpackBootstrap
 					var node;
 					switch (type){
 						case "taskCell":
-							node = new constructor(config.id, gantt.getColumnIndex(config.column));
+							node = new constructor(config.id, findVisibleColumnIndex(config.column));
 							break;
 						case "taskRow":
 							node = new constructor(config.id);
 							break;
 						case "headerCell":
-							node = new constructor(gantt.getColumnIndex(config.column));
+							node = new constructor(findVisibleColumnIndex(config.column));
 							break;
 						default:
 
@@ -1250,7 +1259,10 @@ module.exports = function(gantt) {
 		}
 		this.taskId = taskId;
 		this.columnIndex = index || 0;
-		this.index = gantt.getTaskIndex(this.taskId);
+		// provided task may not exist, in this case node will be detectes as invalid
+		if (gantt.isTaskExists(this.taskId)) {
+			this.index = gantt.getTaskIndex(this.taskId);
+		}
 	};
 
 	gantt.$keyboardNavigation.TaskCell.prototype = gantt._compose(
@@ -1262,7 +1274,9 @@ module.exports = function(gantt) {
 				return gantt.$keyboardNavigation.TaskRow.prototype.isValid.call(this) && !!gantt.getGridColumns()[this.columnIndex];
 			},
 			fallback: function () {
+
 				var node = gantt.$keyboardNavigation.TaskRow.prototype.fallback.call(this);
+				var result = node;
 				if (node instanceof gantt.$keyboardNavigation.TaskRow) {
 					var visibleColumns = gantt.getGridColumns();
 					var index = this.columnIndex;
@@ -1272,12 +1286,11 @@ module.exports = function(gantt) {
 						index--;
 					}
 					if (visibleColumns[index]) {
-						return new gantt.$keyboardNavigation.TaskCell(node.taskId, index);
-					} else {
-						return node;
+						result = new gantt.$keyboardNavigation.TaskCell(node.taskId, index);
 					}
 				}
 
+				return result;
 			},
 
 			fromDomElement: function(el){
@@ -1306,7 +1319,7 @@ module.exports = function(gantt) {
 						var row = gantt.$grid.querySelector(".gantt_row[" + gantt.config.task_attribute + "='" + this.taskId + "']");
 						if(!row)
 							return null;
-						return row.childNodes[this.columnIndex];
+						return row.querySelector("[data-column-index='"+this.columnIndex+"']");
 					} else {
 						return gantt.getTaskNode(this.taskId);
 					}
@@ -1543,7 +1556,7 @@ module.exports = function(gantt) {
 
 				// select
 				"space": function (e) {
-					if (gantt.getState().selected_task != this.taskId) {
+					if (!gantt.isSelectedTask(this.taskId)) {
 						gantt.selectTask(this.taskId);
 					} else {
 						gantt.unselectTask(this.taskId);
@@ -2066,8 +2079,13 @@ function makeEventable(obj){
 	};
 	obj.detachEvent=function(id){
 		if (id){
-			var list = id.split(':');           //get EventName and ID
-			eventHost[list[0]].removeEvent(list[1]); //remove event
+			var list = id.split(':');//get EventName and ID
+			var eventName = list[0];
+			var eventId = list[1];
+
+			if(eventHost[eventName]){
+				eventHost[eventName].removeEvent(eventId); //remove event
+			}
 		}
 	};
 	obj.detachAllEvents = function(){

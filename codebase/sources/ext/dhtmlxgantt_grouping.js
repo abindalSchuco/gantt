@@ -1,7 +1,7 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.2 Professional
+dhtmlxGantt v.6.2.0 Professional
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
 (c) Dinamenta, UAB.
@@ -664,6 +664,21 @@ function objectKeys(obj) {
 	return result;
 }
 
+function requestAnimationFrame(callback) {
+	var w = window;
+	var foundRequestAnimationFrame = w.requestAnimationFrame
+		|| w.webkitRequestAnimationFrame
+		|| w.msRequestAnimationFrame
+		|| w.mozRequestAnimationFrame
+		|| w.oRequestAnimationFrame
+		|| function(cb) { setTimeout(cb, 1000/60); };
+	return foundRequestAnimationFrame(callback);
+}
+
+function isEventable(obj) {
+	return obj.attachEvent && obj.detachEvent;
+}
+
 module.exports = {
 	getSecondsInUnit: getSecondsInUnit,
 	forEach: forEach,
@@ -681,7 +696,9 @@ module.exports = {
 	isNumberObject: isNumberObject,
 	isBooleanObject: isBooleanObject,
 	delay: delay,
-	objectKeys: objectKeys
+	objectKeys: objectKeys,
+	requestAnimationFrame: requestAnimationFrame,
+	isEventable: isEventable
 };
 
 /***/ })
