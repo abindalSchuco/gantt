@@ -1,10 +1,11 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.2 Professional
+dhtmlxGantt v.6.2.3 Professional
+
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
-(c) Dinamenta, UAB.
+(c) XB Software Ltd.
 
 */
 Gantt.plugin(function(gantt){
@@ -149,9 +150,9 @@ gantt._multiselect = {
 	setLastSelected: function (id) {
 		gantt.$data.tasksStore.silent(function(){
 			var store = gantt.$data.tasksStore;
-			if (id) 
-				store.select(id+""); 
-			else 
+			if (id)
+				store.select(id+"");
+			else
 				store.unselect(null);
 		});
 	},
@@ -203,7 +204,7 @@ gantt._multiselect = {
 		}
 		res.sort(function(a, b) {
 			return gantt.getGlobalTaskIndex(a) > gantt.getGlobalTaskIndex(b) ? 1 : -1;
-		});		
+		});
 		return res;
 	},
 	forSelected: function (callback) {
@@ -227,7 +228,6 @@ gantt._multiselect = {
 			gantt.refreshTask(id);
 	},
 	doSelection: function(e) {
-		
 		if (!this.isActive())
 			return false;
 
@@ -257,7 +257,6 @@ gantt._multiselect = {
 		} else {
 			this.setFirstSelected(target_ev);
 		}
-		
 		if (e.ctrlKey || e.metaKey) {
 			if (target_ev) {
 				this.toggle(target_ev, e);
@@ -269,7 +268,7 @@ gantt._multiselect = {
 				var first_indx = gantt.getGlobalTaskIndex(this.getFirstSelected());
 				var target_indx = gantt.getGlobalTaskIndex(target_ev);
 				var last_indx = gantt.getGlobalTaskIndex(last);
-				
+
 				// clear prev selection
 				var tmp = last;
 				while (gantt.getGlobalTaskIndex(tmp) !== first_indx) {
@@ -281,7 +280,7 @@ gantt._multiselect = {
 					if (this.select(tmp, e) && !isLast) {
 						isLast = true;
 						defaultLast = tmp;
-					} 
+					}
 					tmp = (first_indx > target_indx) ? gantt.getNext(tmp) : gantt.getPrev(tmp);
 				}
 			}
@@ -293,7 +292,7 @@ gantt._multiselect = {
 			for (var i=0; i<selected.length; i++) {
 				if (selected[i] !== target_ev) {
 					this.unselect(selected[i], e);
-				}	
+				}
 			}
 		}
 
@@ -317,7 +316,6 @@ gantt._multiselect = {
 };
 
 (function(){
-	
 	var old_selectTask = gantt.selectTask;
 	gantt.selectTask = function(id) {
 		if (!id)
@@ -374,7 +372,11 @@ gantt._multiselect = {
 	gantt.getLastSelectedTask = function(){
 		return this._multiselect.getLastSelected();
 	};
-
+	gantt.attachEvent("onGanttReady", function(){
+		gantt.$data.tasksStore.isSelected = function(id){
+			return gantt._multiselect.isSelected(id);
+		};
+	});
 })();
 
 gantt.attachEvent("onTaskIdChange", function (id, new_id) {

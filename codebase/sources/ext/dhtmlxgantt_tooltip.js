@@ -1,10 +1,11 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.2 Professional
+dhtmlxGantt v.6.2.3 Professional
+
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
-(c) Dinamenta, UAB.
+(c) XB Software Ltd.
 
 */
 Gantt.plugin(function(gantt){
@@ -139,6 +140,24 @@ gantt.attachEvent("onGanttReady", function () {
         },
         global: false
     });
+});
+gantt.attachEvent("onDestroy", function () {
+    tooltipManager.destructor();
+});
+gantt.attachEvent("onLightbox", function () {
+    tooltipManager.hideTooltip();
+});
+var isLinkCreate = function () {
+    var state = gantt.getState();
+    return !!state.link_source_id;
+};
+gantt.attachEvent("onBeforeTooltip", function () {
+    if (isLinkCreate()) {
+        return false;
+    }
+});
+gantt.attachEvent("onGanttScroll", function () {
+    tooltipManager.hideTooltip();
 });
 
 
@@ -294,15 +313,24 @@ exports.Tooltip = Tooltip;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var domEventsScope = __webpack_require__(/*! ../../utils/dom_event_scope */ "./sources/utils/dom_event_scope.js");
 var domHelpers = __webpack_require__(/*! ../../utils/dom_helpers */ "./sources/utils/dom_helpers.js");
 var helpers = __webpack_require__(/*! ../../utils/helpers */ "./sources/utils/helpers.js");
-var utils = __webpack_require__(/*! ../../utils/utils */ "./sources/utils/utils.js");
 var tooltip_1 = __webpack_require__(/*! ./tooltip */ "./sources/ext/tooltip/tooltip.ts");
 var TooltipManager = /** @class */ (function () {
     function TooltipManager() {
         this.tooltip = new tooltip_1.Tooltip();
         this._listeners = {};
+        this._domEvents = domEventsScope();
+        this._initDelayedFunctions();
     }
+    TooltipManager.prototype.destructor = function () {
+        this.tooltip.hide();
+        this._domEvents.detachAll();
+    };
+    TooltipManager.prototype.hideTooltip = function () {
+        this.delayHide();
+    };
     TooltipManager.prototype.attach = function (config) {
         var _this = this;
         var root = document.body;
@@ -316,24 +344,30 @@ var TooltipManager = /** @class */ (function () {
             if (domHelpers.isChildOf(eventTarget, _this.tooltip.getNode())) {
                 return;
             }
+            var doOnMouseEnter = function () {
+                watchableTarget = targetNode;
+                config.onmouseenter(event, targetNode);
+            };
             if (watchableTarget) {
-                if (targetNode) {
+                if (targetNode && targetNode === watchableTarget) {
                     config.onmousemove(event, targetNode);
                 }
                 else {
                     config.onmouseleave(event, watchableTarget);
                     watchableTarget = null;
+                    if (targetNode && targetNode !== watchableTarget) {
+                        doOnMouseEnter();
+                    }
                 }
             }
             else {
                 if (targetNode) {
-                    watchableTarget = targetNode;
-                    config.onmouseenter(event, targetNode);
+                    doOnMouseEnter();
                 }
             }
         };
         this.detach(config.selector);
-        utils.event(root, "mousemove", handler);
+        this._domEvents.attach(root, "mousemove", handler);
         this._listeners[config.selector] = {
             node: root,
             handler: handler
@@ -342,7 +376,7 @@ var TooltipManager = /** @class */ (function () {
     TooltipManager.prototype.detach = function (selector) {
         var listener = this._listeners[selector];
         if (listener) {
-            utils.eventRemove(listener.node, "mousemove", listener.handler);
+            this._domEvents.detach(listener.node, "mousemove", listener.handler);
         }
     };
     TooltipManager.prototype.tooltipFor = function (config) {
@@ -357,43 +391,118 @@ var TooltipManager = /** @class */ (function () {
             }
             return clone;
         };
-        var delayShow = helpers.delay(function (event, html) {
-            _this.tooltip.setContent(html);
-            _this.tooltip.show(event);
-        }, gantt.config.tooltip_timeout || 1);
-        var delayHide = helpers.delay(function () {
-            delayShow.$cancelTimeout();
-            _this.tooltip.hide();
-        }, gantt.config.tooltip_hide_timeout || 1);
+        this._initDelayedFunctions();
         this.attach({
             selector: config.selector,
             global: config.global,
             onmouseenter: function (event, node) {
                 var html = config.html(event, node);
                 if (html) {
-                    delayShow(cloneDomEvent(event), html);
+                    _this.delayShow(cloneDomEvent(event), html);
                 }
             },
             onmousemove: function (event, node) {
                 var html = config.html(event, node);
                 if (html) {
-                    delayShow(cloneDomEvent(event), html);
+                    _this.delayShow(cloneDomEvent(event), html);
                 }
                 else {
-                    delayShow.$cancelTimeout();
-                    delayHide();
+                    _this.delayShow.$cancelTimeout();
+                    _this.delayHide();
                 }
             },
             onmouseleave: function () {
-                delayShow.$cancelTimeout();
-                delayHide();
+                _this.delayShow.$cancelTimeout();
+                _this.delayHide();
             },
         });
+    };
+    TooltipManager.prototype._initDelayedFunctions = function () {
+        var _this = this;
+        // reset delayed functions in order to apply current values of tooltip_timeout
+        if (this.delayShow) {
+            this.delayShow.$cancelTimeout();
+        }
+        if (this.delayHide) {
+            this.delayHide.$cancelTimeout();
+        }
+        this.tooltip.hide();
+        this.delayShow = helpers.delay(function (event, html) {
+            if (gantt.callEvent("onBeforeTooltip", [event]) === false) {
+                _this.tooltip.hide();
+            }
+            else {
+                _this.tooltip.setContent(html);
+                _this.tooltip.show(event);
+            }
+        }, gantt.config.tooltip_timeout || 1);
+        this.delayHide = helpers.delay(function () {
+            _this.delayShow.$cancelTimeout();
+            _this.tooltip.hide();
+        }, gantt.config.tooltip_hide_timeout || 1);
     };
     return TooltipManager;
 }());
 exports.TooltipManager = TooltipManager;
 
+
+/***/ }),
+
+/***/ "./sources/utils/dom_event_scope.js":
+/*!******************************************!*\
+  !*** ./sources/utils/dom_event_scope.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var utils = __webpack_require__(/*! ./utils */ "./sources/utils/utils.js");
+
+function createScope(addEvent, removeEvent) {
+	addEvent = addEvent || utils.event;
+	removeEvent = removeEvent || utils.eventRemove;
+
+	var handlers = [];
+
+	var eventScope = {
+		attach: function(el, event, callback, capture){
+			handlers.push({element: el, event:event, callback: callback, capture: capture});
+			addEvent(el, event, callback, capture);
+		},
+		detach: function(el, event, callback, capture){
+			removeEvent(el, event, callback, capture);
+			for(var i = 0; i < handlers.length; i++){
+				var handler = handlers[i];
+				if (handler.element === el && handler.event === event && handler.callback === callback && handler.capture === capture) {
+					handlers.splice(i, 1);
+					i--;
+				}
+			}
+		},
+		detachAll: function () {
+			var staticArray = handlers.slice();
+			// original handlers array can be spliced on every iteration
+			for (var i = 0; i < staticArray.length; i++){
+				var handler = staticArray[i];
+				eventScope.detach(handler.element, handler.event, handler.callback, handler.capture);
+				eventScope.detach(handler.element, handler.event, handler.callback, undefined);
+				eventScope.detach(handler.element, handler.event, handler.callback, false);
+				eventScope.detach(handler.element, handler.event, handler.callback, true);
+			}
+			handlers.splice(0, handlers.length);
+		},
+		extend: function(){
+			return createScope(this.event, this.eventRemove);
+		}
+	};
+
+	if (!window.scopes) {
+		window.scopes = [];
+	}
+	window.scopes.push(handlers);
+	return eventScope;
+}
+
+module.exports = createScope;
 
 /***/ }),
 
@@ -909,6 +1018,21 @@ function objectKeys(obj) {
 	return result;
 }
 
+function requestAnimationFrame(callback) {
+	var w = window;
+	var foundRequestAnimationFrame = w.requestAnimationFrame
+		|| w.webkitRequestAnimationFrame
+		|| w.msRequestAnimationFrame
+		|| w.mozRequestAnimationFrame
+		|| w.oRequestAnimationFrame
+		|| function(cb) { setTimeout(cb, 1000/60); };
+	return foundRequestAnimationFrame(callback);
+}
+
+function isEventable(obj) {
+	return obj.attachEvent && obj.detachEvent;
+}
+
 module.exports = {
 	getSecondsInUnit: getSecondsInUnit,
 	forEach: forEach,
@@ -926,7 +1050,9 @@ module.exports = {
 	isNumberObject: isNumberObject,
 	isBooleanObject: isBooleanObject,
 	delay: delay,
-	objectKeys: objectKeys
+	objectKeys: objectKeys,
+	requestAnimationFrame: requestAnimationFrame,
+	isEventable: isEventable
 };
 
 /***/ }),

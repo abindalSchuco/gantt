@@ -1,10 +1,11 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.2 Professional
+dhtmlxGantt v.6.2.3 Professional
+
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
-(c) Dinamenta, UAB.
+(c) XB Software Ltd.
 
 */
 .buttonBg {
@@ -1609,6 +1610,13 @@ div.dhx_modal_cover {
   height: inherit;
   width: inherit;
 }
+.gantt_click_drag_rect {
+  position: absolute;
+  left: 0;
+  top: 0;
+  outline: 1px solid #3f98db;
+  background-color: rgba(52, 152, 219, 0.3);
+}
 .gantt_layout_content {
   width: 100%;
   overflow: auto;
@@ -1815,6 +1823,8 @@ div.dhx_modal_cover {
   left: -1000px;
   font-family: "Tahoma";
   font-size: 11px;
+  z-index: 1;
+  white-space: nowrap;
 }
 .gantt_drag_marker .gantt_tree_indent,
 .gantt_drag_marker .gantt_tree_icon.gantt_blank,

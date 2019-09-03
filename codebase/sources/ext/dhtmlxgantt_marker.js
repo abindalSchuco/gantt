@@ -1,10 +1,11 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.2 Professional
+dhtmlxGantt v.6.2.3 Professional
+
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
-(c) Dinamenta, UAB.
+(c) XB Software Ltd.
 
 */
 Gantt.plugin(function(gantt){
@@ -138,7 +139,7 @@ function render_marker(marker){
 	var state = gantt.getState();
 	if(+marker.start_date > +state.max_date)
 		return;
-	if(+marker.end_date && +marker.end_date < +state.min_date || +marker.start_date < +state.min_date)
+	if((!marker.end_date || +marker.end_date < +state.min_date) && +marker.start_date < +state.min_date)
 		return;
 
 	var div = document.createElement("div");
@@ -187,6 +188,13 @@ function initMarkerArea(){
 gantt.attachEvent("onBeforeGanttRender", function(){
 	if(!gantt.$marker_area)
 		initMarkerArea();
+});
+
+gantt.attachEvent("onDataRender", function(){
+	if(!gantt.$marker_area){
+		initMarkerArea();
+		gantt.renderMarkers();
+	}
 });
 
 gantt.attachEvent("onGanttReady", function(){

@@ -1,10 +1,11 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.2 Professional
+dhtmlxGantt v.6.2.3 Professional
+
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
-(c) Dinamenta, UAB.
+(c) XB Software Ltd.
 
 */
 Gantt.plugin(function(gantt){
@@ -123,6 +124,7 @@ gantt._groups = {
 	loading: false,
 	loaded: 0,
 	dynamicGroups: false,
+	set_relation_value: undefined,
 	init: function(gantt){
 		var self = this;
 
@@ -155,6 +157,21 @@ gantt._groups = {
 		gantt.$data.tasksStore.setParent = function(task, new_pid) {
 			if (!self.is_active()) {
 				return originalSetParent.apply(this, arguments);
+			} else if (self.set_relation_value instanceof Function && gantt.isTaskExists(new_pid)) {
+				var parent = gantt.getTask(new_pid);
+				var groupIds = parent[self.relation_id_property];
+				if (task[self.group_id] === undefined)
+					task[self.group_id] = groupIds; // to avoid nulling of relation_property if the group is not set
+
+				if (groupIds){
+					if (typeof groupIds == "string"){
+						groupIds = groupIds.split(",");
+					} else {
+						groupIds = [groupIds];
+					}
+				}
+				task[self.relation_property] = self.set_relation_value(groupIds) || groupIds;
+				
 			} else if (gantt.isTaskExists(new_pid)) {
 				var parent = gantt.getTask(new_pid);
 
@@ -302,6 +319,8 @@ gantt.groupBy = function(config) {
 	var _this = this;
 	var tasks = gantt.getTaskByTime();
 
+	this._groups.set_relation_value = config.set_relation_value;
+	
 	this._groups.dynamicGroups = helpers.arraySome(
 		tasks,
 		function(entry, index) {
@@ -341,17 +360,21 @@ function _initGroups(config, tasks, gantt) {
 	return groups;
 }
 
+function _getResourcesIds(resourses){
+	return helpers.arrayMap(resourses, function(entry, index) {
+		if(entry && typeof entry == "object"){
+			return String(entry.resource_id);
+		}else{
+			return String(entry);
+		}
+	}).sort().join(",");
+}
+
 function _getGroupId(task, relationProperty) {
 	var group_id;
 
 	if (task[relationProperty] instanceof Array) {
-		group_id = helpers.arrayMap(task[relationProperty], function(entry, index) {
-			if(entry && typeof entry == "object"){
-				return entry.resource_id;
-			}else{
-				return entry;
-			}
-		}).join(",");
+		group_id = _getResourcesIds(task[relationProperty]);
 	} else {
 		group_id = task[relationProperty];
 	}
@@ -382,17 +405,7 @@ function _getGroupForMultiItems(tasks, config) {
 
 		if (helpers.isArray(tasks[i][property])) {
 			if(tasks[i][property].length > 0) {
-			key = helpers.arrayMap(
-				tasks[i][property],
-				function(entry, index) {
-					if(entry && typeof entry == "object"){
-						return entry.resource_id;
-					}else{
-						return entry;
-					}
-				}
-			).sort().join(",");
-
+			key = _getResourcesIds(tasks[i][property]);
 			label = helpers.arrayMap(
 				tasks[i][property],
 				function(entry, index) {
@@ -664,6 +677,21 @@ function objectKeys(obj) {
 	return result;
 }
 
+function requestAnimationFrame(callback) {
+	var w = window;
+	var foundRequestAnimationFrame = w.requestAnimationFrame
+		|| w.webkitRequestAnimationFrame
+		|| w.msRequestAnimationFrame
+		|| w.mozRequestAnimationFrame
+		|| w.oRequestAnimationFrame
+		|| function(cb) { setTimeout(cb, 1000/60); };
+	return foundRequestAnimationFrame(callback);
+}
+
+function isEventable(obj) {
+	return obj.attachEvent && obj.detachEvent;
+}
+
 module.exports = {
 	getSecondsInUnit: getSecondsInUnit,
 	forEach: forEach,
@@ -681,7 +709,9 @@ module.exports = {
 	isNumberObject: isNumberObject,
 	isBooleanObject: isBooleanObject,
 	delay: delay,
-	objectKeys: objectKeys
+	objectKeys: objectKeys,
+	requestAnimationFrame: requestAnimationFrame,
+	isEventable: isEventable
 };
 
 /***/ })
