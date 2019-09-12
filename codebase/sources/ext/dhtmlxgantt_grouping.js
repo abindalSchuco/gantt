@@ -1,7 +1,7 @@
 /*
 @license
 
-dhtmlxGantt v.6.2.3 Professional
+dhtmlxGantt v.6.2.5 Professional
 
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
@@ -454,12 +454,22 @@ function _getGroupForMultiItems(tasks, config) {
 	return result;
 }
 
+var state = gantt.$services.getService("state");
+state.registerProvider("groupBy", function () {
+	return { 
+		group_mode: gantt._groups.is_active() ? gantt._groups.relation_property : null
+	};
+});
+
 function _initBeforeDataRender() {
 	var _this = this;
 	if (this.$data.tasksStore._listenerToDrop) { 
 		this.$data.tasksStore.detachEvent(this.$data.tasksStore._listenerToDrop);
 	}
-	this.$data.tasksStore.attachEvent("onAfterUpdate", function() {
+
+	// updateTask can be called many times from batchUpdate or autoSchedule, 
+	// add a delay in order to perform grouping only once when everything is done
+	this.$data.tasksStore.attachEvent("onAfterUpdate", helpers.delay(function() {
 		if (!_this._groups.dynamicGroups) {
 			return true;
 		}
@@ -467,7 +477,7 @@ function _initBeforeDataRender() {
 			_this._groups.regroup();
 		}
 		return true;
-	});
+	}));
 }
 
 /***/ }),
