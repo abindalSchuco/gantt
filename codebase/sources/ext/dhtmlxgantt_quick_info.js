@@ -1,7 +1,7 @@
 /*
 @license
 
-dhtmlxGantt v.6.2.5 Professional
+dhtmlxGantt v.6.2.6 Professional
 
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
@@ -373,9 +373,12 @@ gantt._get_event_counter_part = function(id, offset, viewport){
 	var top = offset + domEv.offsetTop + domEv.offsetHeight;
 
 	var node = domEv;
-	while (node && node !== viewport){
-		left += node.offsetLeft;
-		node = node.offsetParent;
+
+	if (this.utils.dom.isChildOf(node, viewport)) {
+		while (node && node !== viewport){
+			left += node.offsetLeft;
+			node = node.offsetParent;
+		}
 	}
 
 	var scroll = this.getScrollState();
