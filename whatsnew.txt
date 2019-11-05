@@ -1,3 +1,9 @@
+### 6.2.7
+
+- Fix the issue with vertical resizing of grids with horizontal scroll in complex layouts
+- Fix the incorrect work of the resource histogram when the scale step is greater than one
+- Fix the reopened bug with collapsed branches after calling gantt.parse from v6.2.4 bugfix
+
 ### 6.2.6
 
 - Fix the regression in v6.2 Smart Rendering which in some cases caused incorrect vertical positions of tasks after re-initialization of the Gantt
@@ -13,9 +19,9 @@
 
 ### 6.2.4
 
-- Fix the issue with task branches being collapsed after updating data using the parse method
+- Fix the issue with task branches being collapsed after updating data using gantt.parse
 - Fix the incorrect work of smart rendering in the resource view
-- Fix the issue which caused the Zoom module to attach redundant DOM event handlers on each re-initialization of the Gantt
+- Fix the issue which caused the Zoom module to attach redundant DOM event handlers on each re-initialization of the Gantt 
 
 ### 6.2.3
 

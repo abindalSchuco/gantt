@@ -1,6 +1,6 @@
 {
   "name": "dhtmlx-gantt",
-  "version": "6.2.3",
+  "version": "6.2.7",
   "description": "An open source JavaScript Gantt chart that helps you illustrate a project schedule in a nice-looking chart.",
   "main": "codebase/dhtmlxgantt.js",
   "types": "codebase/dhtmlxgantt.d.ts",
@@ -20,7 +20,7 @@
     "browser"
   ],
   "author": "DHTMLX",
-  "license": "Enterprise",
+  "license": "SEE LICENSE IN license.txt",
   "bugs": {
     "url": "https://github.com/DHTMLX/gantt/issues"
   },
