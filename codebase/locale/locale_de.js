@@ -1,7 +1,7 @@
 /*
 @license
 
-dhtmlxGantt v.6.3.4 Professional
+dhtmlxGantt v.6.3.6 Professional
 
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
