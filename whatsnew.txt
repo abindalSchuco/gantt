@@ -1,3 +1,94 @@
+### 7.0.5
+
+- Performance improvements for work time calculation when the duration_unit config is set to "hour"
+- Performance improvements for work time calculation when the duration_unit config is set to "minute"
+- The ability to specify working calendars in the configuration object of Gantt.getGanttInstance is added
+
+### 7.0.4
+
+- Removed the 10000px limit on the gantt size in the autosize mode, which should allow printing larger charts
+- Drag and drop now finishes when the user releases the mouse button over any part of the document body rather than over the gantt container only
+- Portuguese locale was updated
+- The return type of gantt.columnIndexByDate in type definitions is fixed
+- Fix script errors that were fired when the Gantt instance was destroyed during drag and drop
+- Fix the incorrect calculation of end_date/duration when duration_unit is set to "minute" and the last worktime interval finishes after 23:00
+- Fix the issue which caused groups of the grouping extension to expand whenever the user modified any task
+- Fix the issue which caused the second parameter of dataProcessor.setTransactionMode to be ignored if an object was passed into the first parameter
+- Fix the issue which caused the active inline editor to disappear after repaint of Gantt
+- Fix the issue with the static_background extension which caused mouse click on empty cells to be interpreted as a click on task elements
+- Gantt now dynamically repaints links between split tasks during drag and drop
+- Fix the script error which was thrown from gantt.addTask in node.js package
+- Fix the script error which was thrown from gantt.destructor in node.js package
+
+### 7.0.3
+
+- Fix regression in the setWorkTime method which caused a script error when the working time is set for a specific day
+- Fix the incorrect work of the Keyboard Navigation extension when Gantt is used inside a SalesForce Lightning Web Component
+
+### 7.0.2
+
+- Fix the incorrect work of date formatters when gantt.config.csp is set to true.
+- Fix regression in the Click Drag and Drag Timeline extensions which caused the incorrect work when multiple instances of Gantt were created
+- Fix the incorrect css class of a task row element after returning the error status from the dataProcessor router function
+- Fix the incorrect work of inline editors inside Shadow DOM
+
+### 7.0.1
+
+- Major performance improvement for calculation tasks' duration in the working minutes
+- Fix regression in the Tooltip and Undo extensions which caused the incorrect work when multiple instances of Gantt were created
+- Fix the issue with the reordering of grid columns which caused the timeline to scroll when a mouse pointer moved to the edge of the grid during drag and drop
+- Fix the incorrect position of the column after its dragging and dropping to the right side of the grid border
+- dataProcessor custom router should now work correctly with rejected promises
+- Fix the regression in smart rendering which caused some links not to be visible
+- Split tasks now display not only the first level children but also all nested subtasks
+- Fix the issue with split tasks and smart rendering which happened when a split task had the 'task' type
+- Fix the issue with split tasks which caused the gantt not to calculate the duration of the 'project' tasks nested in a split task
+- Fix the incorrect position of a placeholder after opening an inline editor in the RTL mode
+
+### 7.0.0
+
+- Nodejs-compatible build of dhtmlxGantt is now available
+- Update TypeScript type definitions
+- Extensions and Locales are now bundled with dhtmlxgantt.js core file and are enabled from config
+- Ability to specify work time in minutes
+- Ability to merge several work time calendars
+- Changed default work hours from 8:00-17:00 to 8:00-12:00, 13:00-17:00
+- Simpler format for entering work time intervals for Calendars
+- Extend the API of the QuickInfo extension
+- CSP mode is enabled by default
+- All custom HTML attributes were changed to `data-` attributes
+- Add the ability to use `text-overflow:ellipsis` on grid cells
+- Add the ability to reorder grid columns by drag and drop
+- Add support for 'elastic' column width for the scrollable grid
+- gantt.templates.xml_date/gantt.templates.xml_format were replaced with gantt.templates.parse_date/gantt.templates.format_date
+- gantt.config.xml_date was replaced with gantt.config.date_format
+- Fix the bug which caused a column to change width after hiding and showing the column again
+- Fix the bug which disabled the ability to select any task when the multiselect extension was disabled via the `multiselect` config
+- Fix the incorrect work of `gantt.sort` for tasks with equal start dates
+- Fix drag and drop of a link when Gantt is initialized inside a Web Component
+
+### 6.3.7
+
+- Significant performance improvement for smart rendering of chart and resource panel
+
+### 6.3.6
+
+- Fix the regression in gantt.resetLayout which caused the script error
+- Fix the issue with the QuickInfo popup which caused it to be positioned behind the resource panel in some cases
+- Fix the script error thrown from the gantt.getShortcutHandler method
+- Fix the script error thrown from the tooltip.show(x, y) method
+- gantt.getTaskNode now returns the correct HTML element for split tasks
+- Fix the issue with horizontal scrollbars not being displayed when visibility groups are specified in some layout configurations
+
+### 6.3.5
+
+- Fix the issue with task grouping which caused vertical scroll position to reset after moving any task with drag and drop
+- Fix the script error which happened when drag_timeline config was set to null
+- Fix the incorrect position of highlighted cells when static_background and static_background_cells are enabled and smart_rendering is disabled
+- Fix the issue with the onAfterBranchLoading event not being called
+- Fix the incorrect work of smart rendering when the value of task_height is less than the value of row_height
+- A public method for rebuilding gantt layout after changing its config is added
+
 ### 6.3.4
 
 - Fix crashes of the resource load diagram when smart rendering is switched off
@@ -78,7 +169,7 @@
 
 - Fix the issue with task branches being collapsed after updating data using gantt.parse
 - Fix the incorrect work of smart rendering in the resource view
-- Fix the issue which caused the Zoom module to attach redundant DOM event handlers on each re-initialization of the Gantt 
+- Fix the issue which caused the Zoom module to attach redundant DOM event handlers on each re-initialization of the Gantt
 
 ### 6.2.3
 
