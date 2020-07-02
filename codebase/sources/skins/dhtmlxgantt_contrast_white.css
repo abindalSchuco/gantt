@@ -1,10 +1,11 @@
 /*
 @license
 
-dhtmlxGantt v.6.1.2 Professional
+dhtmlxGantt v.7.0.5 Professional
+
 This software is covered by DHTMLX Enterprise License. Usage without proper license is prohibited.
 
-(c) Dinamenta, UAB.
+(c) XB Software Ltd.
 
 */
 .buttonBg {
@@ -376,8 +377,14 @@ This software is covered by DHTMLX Enterprise License. Usage without proper lice
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
+.gantt_row {
+  display: flex;
+}
+.gantt_row > div {
+  flex-shrink: 0;
+  flex-grow: 0;
+}
 .gantt_cell {
-  display: inline-block;
   vertical-align: top;
   border-right: 1px solid #000;
   padding-left: 6px;
@@ -386,6 +393,10 @@ This software is covered by DHTMLX Enterprise License. Usage without proper lice
   overflow: hidden;
   white-space: nowrap;
   font-size: 15px;
+}
+.gantt_cell_tree {
+  display: flex;
+  flex-wrap: nowrap;
 }
 .gantt_grid_scale .gantt_last_cell,
 .gantt_grid_data .gantt_last_cell,
@@ -441,10 +452,14 @@ This software is covered by DHTMLX Enterprise License. Usage without proper lice
   width: 5000px;
   height: 1px;
 }
+.gantt_tree_indent,
+.gantt_tree_icon {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
 .gantt_tree_indent {
   width: 15px;
   height: 100%;
-  display: inline-block;
 }
 .gantt_tree_content,
 .gantt_tree_icon {
@@ -453,13 +468,13 @@ This software is covered by DHTMLX Enterprise License. Usage without proper lice
 .gantt_tree_icon {
   width: 28px;
   height: 100%;
-  display: inline-block;
   background-repeat: no-repeat;
   background-position: center center;
 }
 .gantt_tree_content {
   height: 100%;
-  display: inline-block;
+  white-space: nowrap;
+  min-width: 0;
 }
 .gantt_tree_icon.gantt_open {
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTMyIDc5LjE1OTI4NCwgMjAxNi8wNC8xOS0xMzoxMzo0MCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTUuNSAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QzVDNzJCOEM2ODc3MTFFNkFGNTdEMzMyODI3QzgxN0EiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QzVDNzJCOEQ2ODc3MTFFNkFGNTdEMzMyODI3QzgxN0EiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDNUM3MkI4QTY4NzcxMUU2QUY1N0QzMzI4MjdDODE3QSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDNUM3MkI4QjY4NzcxMUU2QUY1N0QzMzI4MjdDODE3QSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pin6TiQAAABfSURBVHja1JLBDoAwCEOp2Ufyh/CXnSezLDoU9CAnLi3tC1BVyY6ZySbFacPOh1rMBuLuuKPcax/HogqMkpUZvApxBZMzvE8T4OQy/gXxqk5sMH5YJgEyFUCyxKALMAAp9xIuO3IRpAAAAABJRU5ErkJggg==);
@@ -532,6 +547,39 @@ This software is covered by DHTMLX Enterprise License. Usage without proper lice
 }
 #gantt_ajax_dots span.gantt_dot_visible {
   opacity: 1;
+}
+.gantt_column_drag_marker {
+  border: 1px solid #CECECE;
+  opacity: 0.8;
+}
+.gantt_grid_head_cell_dragged {
+  border: 1px solid #CECECE;
+  opacity: 0.3;
+}
+.gantt_grid_target_marker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: #000;
+  transform: translateX(-1px);
+}
+.gantt_grid_target_marker::before,
+.gantt_grid_target_marker::after {
+  display: block;
+  content: "";
+  position: absolute;
+  left: -5px;
+  width: 0px;
+  height: 0px;
+  border: 6px solid rgba(0, 0, 0, 0);
+}
+.gantt_grid_target_marker::before {
+  border-top-color: #000;
+}
+.gantt_grid_target_marker::after {
+  bottom: 0;
+  border-bottom-color: #000;
 }
 .gantt_message_area {
   position: fixed;
@@ -1056,7 +1104,8 @@ div.dhx_modal_cover {
   -webkit-box-shadow: inset 0px 0px 1px 1px #4d90fe;
   box-shadow: inset 0px 0px 1px 1px #4d90fe;
 }
-.gantt_split_parent {
+.gantt_split_parent,
+.gantt_split_subproject {
   opacity: 0.1;
   pointer-events: none;
 }
@@ -1357,6 +1406,9 @@ div.dhx_modal_cover {
   padding: 3px 4px;
   border-left-width: 0;
   border-right-width: 0;
+}
+.gantt_duration .gantt_duration_value.gantt_duration_value_formatted {
+  width: 70px;
 }
 .gantt_duration .gantt_duration_dec,
 .gantt_duration .gantt_duration_inc {
@@ -1687,6 +1739,24 @@ div.dhx_modal_cover {
   height: inherit;
   width: inherit;
 }
+.gantt_click_drag_rect {
+  position: absolute;
+  left: 0;
+  top: 0;
+  outline: 1px solid #3f98db;
+  background-color: rgba(52, 152, 219, 0.3);
+}
+.gantt_timeline_move_available,
+.gantt_timeline_move_available * {
+  cursor: move;
+}
+.gantt_rtl .gantt_grid {
+  text-align: right;
+}
+.gantt_rtl .gantt_row,
+.gantt_rtl .gantt_cell {
+  flex-direction: row-reverse;
+}
 .gantt_layout_content {
   width: 100%;
   overflow: auto;
@@ -1893,6 +1963,8 @@ div.dhx_modal_cover {
   left: -1000px;
   font-family: "arial";
   font-size: 14px;
+  z-index: 1;
+  white-space: nowrap;
 }
 .gantt_drag_marker .gantt_tree_indent,
 .gantt_drag_marker .gantt_tree_icon.gantt_blank,
